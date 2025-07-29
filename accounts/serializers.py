@@ -40,6 +40,15 @@ class LoginSerializer(serializers.Serializer):
         raise serializers.ValidationError("Telefon raqam yoki parol noto'g'ri")
 
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email_or_phone = serializers.CharField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=6)
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

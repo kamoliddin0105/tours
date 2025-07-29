@@ -10,7 +10,7 @@ from tours.views import (
     TourListCreateAPIView,
     TourRetrieveUpdateDestroyAPIView,
     AllUsersAPIView,
-    BlockUserAPIView,
+    BlockUserAPIView, BookTourAPIView, MyBookingsAPIView, CancelBookingAPIView, ConfirmUserTourAPIView,
 )
 
 urlpatterns = [
@@ -24,5 +24,11 @@ urlpatterns = [
     path('admin/<int:pk>/', TourRetrieveUpdateDestroyAPIView.as_view(), name='admin_tour_detail'),
     path('admin/users/', AllUsersAPIView.as_view(), name='admin_all_users'),
     path('admin/users/<int:user_id>/block/', BlockUserAPIView.as_view(), name='admin_block_user'),
+    path('admin/confirm-booking/<int:pk>/', ConfirmUserTourAPIView.as_view(), name='confirm-booking'),
+
+    # booking
+    path('book/', BookTourAPIView.as_view(), name='tour_book'),
+    path('my-bookings/', MyBookingsAPIView.as_view(), name='my_bookings'),
+    path('book/<int:pk>/cancel/', CancelBookingAPIView.as_view(), name='cancel_booking'),
 
 ]

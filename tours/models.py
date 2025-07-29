@@ -1,6 +1,7 @@
 from django.db import models
 
 from accounts.models import User
+from core.models import BaseModel
 
 
 class TourDestination(models.Model):
@@ -32,9 +33,15 @@ class TourDestination(models.Model):
         db_table = 'tours'
 
 
-class UserTour(models.Model):
+class UserTour(BaseModel):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tour = models.ForeignKey(TourDestination, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     has_attended = models.BooleanField(default=False)
 
     def __str__(self):
@@ -42,3 +49,4 @@ class UserTour(models.Model):
 
     class Meta:
         db_table = 'user_tours'
+        unique_together = ('user', 'tour')

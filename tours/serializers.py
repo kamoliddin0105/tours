@@ -14,6 +14,10 @@ class UserTourSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserTour
-        fields = '__all__'
+        fields = ['id', 'tour', 'status', 'has_attended', 'created_at']
 
 
+class CreateUserTourSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTour
+        fields = ['tour']
