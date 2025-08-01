@@ -23,4 +23,7 @@ urlpatterns = [
     path('tours/', include('tours.urls')),
     path('schedules/', include('schedules.urls')),
     path('cms/', include('cms.urls')),
+    path('reviews/', include('reviews.urls')),
+    path('contact/', include('contact.urls')),
+    path('currency/', include('currency.urls')),
 ]
