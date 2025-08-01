@@ -11,10 +11,11 @@ class TourDestinationFilter(django_filters.FilterSet):
         choices=[('7_days', '7 kun'), ('14_days', '14 kun'), ('1_month', '1 oy')]
     )
     month = django_filters.NumberFilter(method='filter_by_month')
+    is_hot = django_filters.BooleanFilter(field_name='is_hot')
 
     class Meta:
         model = TourDestination
-        fields = ['region', 'duration', 'month']
+        fields = ['region', 'duration', 'month', 'is_hot']
 
     def filter_by_month(self, queryset, name, value):
         return queryset.filter(

@@ -1,3 +1,2 @@
-from django.shortcuts import render
-
-# Create your views here.
+def send_sms(phone_number, message):
+    print(f"SMS to {phone_number}: {message}")

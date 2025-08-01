@@ -8,8 +8,10 @@ from rest_framework.views import APIView
 from accounts.models import User
 from accounts.permisssions import IsAdminUserCustom
 from accounts.serializers import UserSerializer
-from tours.models import TourDestination, UserTour
-from tours.serializers import TourDestinationSerializer, UserTourSerializer, CreateUserTourSerializer
+from core.views import send_sms
+from tours.models import TourDestination, UserTour, TourPriceWatch
+from tours.serializers import TourDestinationSerializer, UserTourSerializer, CreateUserTourSerializer, \
+    TourPriceWatchSerializer
 
 
 class TourListCreateAPIView(CreateAPIView):
@@ -119,3 +121,18 @@ class RegionPriceAPIView(APIView):
     def get(self, request):
         data = TourDestination.objects.values('location').annotate(avg_price=Avg('price'))
         return Response(data)
+
+
+class TourPriceWatchCreateAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
+    queryset = TourPriceWatch.objects.all()
+    serializer_class = TourPriceWatchSerializer
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        phone_number = instance.user.phone_number
+        message = f"Narx kuzatuvi yoqildi"
+
+        send_sms(phone_number, message)
+
+

@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'reviews',
     'schedules',
     'contact',
-    'currency'
+    'currency',
+    'cms'
 ]
 
 REST_FRAMEWORK = {
@@ -140,7 +141,6 @@ LANGUAGES = (
 )
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'uz'
-
 
 TIME_ZONE = 'UTC'
 

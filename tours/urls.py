@@ -4,13 +4,14 @@ from tours.public_views import (
     TourListAPIView,
     TourDetailAPIView,
     MyToursAPIView,
-    TourListFilterAPIView
+    TourListFilterAPIView, TourCalendarAPIView, TourMapAPIView, GroupedTourMapAPIView
 )
 from tours.views import (
     TourListCreateAPIView,
     TourRetrieveUpdateDestroyAPIView,
     AllUsersAPIView,
     BlockUserAPIView, BookTourAPIView, MyBookingsAPIView, CancelBookingAPIView, ConfirmUserTourAPIView, HotToursAPIView,
+    TourPriceWatchCreateAPIView,
 )
 
 urlpatterns = [
@@ -20,6 +21,10 @@ urlpatterns = [
     path('my-tours/', MyToursAPIView.as_view(), name='my_tours'),
     path('filter/', TourListFilterAPIView.as_view(), name='tour_filter'),
     path('tours/hot/', HotToursAPIView.as_view()),
+    path('price-watch/', TourPriceWatchCreateAPIView.as_view(), name='price-watch'),
+    path('tours/<int:tour_id>/calendar/', TourCalendarAPIView.as_view()),
+    path('price-map/', TourMapAPIView.as_view(), name='price-map'),
+    path('grouped-price-map/', GroupedTourMapAPIView.as_view(), name='grouped-price-map'),
 
     # admin
     path('admin/tours/', TourListCreateAPIView.as_view(), name='admin_tour_list_create'),

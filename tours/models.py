@@ -38,6 +38,11 @@ class TourDestination(BaseModel):
     currency = models.ForeignKey(Currency, on_delete=models.SET_NULL, null=True, blank=True)
     includes = ArrayField(models.CharField(max_length=255), blank=True, default=list)
     images = ArrayField(models.URLField(max_length=500), blank=True, default=list)
+    is_hot = models.BooleanField(default=False)
+
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    region = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -78,9 +83,9 @@ class UserTour(BaseModel):
         db_table = 'user_tours'
         unique_together = ('user', 'tour')
 
+
 class TourPriceWatch(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     tour = models.ForeignKey(TourDestination, on_delete=models.CASCADE)
     target_price = models.DecimalField(max_digits=10, decimal_places=2)
     is_notified = models.BooleanField(default=False)
-
