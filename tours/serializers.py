@@ -6,7 +6,10 @@ from tours.models import TourDestination, UserTour
 class TourDestinationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TourDestination
-        fields = '__all__'
+        fields = ['name', 'location', 'description', 'start_point', 'start_date', 'end_date', 'duration',
+                  'price', 'price_children', 'discount_price', 'available_seats', 'is_featured', 'departure_dates',
+                  'includes', 'images']
+        write_only_fields = ['id','is_featured']
 
 
 class UserTourSerializer(serializers.ModelSerializer):

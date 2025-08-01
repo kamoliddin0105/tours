@@ -10,14 +10,16 @@ from tours.views import (
     TourListCreateAPIView,
     TourRetrieveUpdateDestroyAPIView,
     AllUsersAPIView,
-    BlockUserAPIView, BookTourAPIView, MyBookingsAPIView, CancelBookingAPIView, ConfirmUserTourAPIView,
+    BlockUserAPIView, BookTourAPIView, MyBookingsAPIView, CancelBookingAPIView, ConfirmUserTourAPIView, HotToursAPIView,
 )
 
 urlpatterns = [
+    # tours
     path('', TourListAPIView.as_view(), name='tour_list'),
     path('<int:id>/', TourDetailAPIView.as_view(), name='tour_detail'),
     path('my-tours/', MyToursAPIView.as_view(), name='my_tours'),
     path('filter/', TourListFilterAPIView.as_view(), name='tour_filter'),
+    path('tours/hot/', HotToursAPIView.as_view()),
 
     # admin
     path('admin/tours/', TourListCreateAPIView.as_view(), name='admin_tour_list_create'),

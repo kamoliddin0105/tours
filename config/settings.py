@@ -39,15 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    # out app
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
     'django_filters',
-
+    'modeltranslation',
+    # in app
     'accounts',
     'core',
-    'tours'
+    'tours.apps.ToursConfig',
+    'banners',
+    'reviews',
+    'schedules',
+    'contact',
+    'currency'
 ]
 
 REST_FRAMEWORK = {
@@ -127,7 +133,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGES = (
+    ('uz', 'Uzbek'),
+    ('ru', 'Russian'),
+    ('en', 'English'),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'uz'
+
 
 TIME_ZONE = 'UTC'
 

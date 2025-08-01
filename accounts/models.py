@@ -31,8 +31,9 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     password = models.CharField(max_length=255)
 
     is_admin = models.BooleanField(default=False)
+    is_tour_manager = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)  # bu admin uchun zarur
+    is_staff = models.BooleanField(default=False)
 
     objects = UserManager()
 

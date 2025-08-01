@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -75,9 +76,9 @@ class CancelBookingAPIView(APIView):
         except UserTour.DoesNotExist:
             return Response({"detail": "Tour not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if booking.status == 'cancelled':
+        if booking.status == 'CANCELLED':
             return Response({"detail": "You already cancelled this tour."}, status=status.HTTP_400_BAD_REQUEST)
-        booking.status = 'cancelled'
+        booking.status = 'CANCELLED'
         booking.save()
         return Response({"detail": "You cancelled this tour."}, status=status.HTTP_200_OK)
 
@@ -89,15 +90,15 @@ class ConfirmUserTourAPIView(APIView):
         try:
             user_tour = UserTour.objects.get(pk=pk)
 
-            if user_tour.status == 'Pending':
-                user_tour.status = 'Confirmed'
+            if user_tour.status == 'PENDING':
+                user_tour.status = 'CONFIRMED'
                 user_tour.save()
                 return Response({'detail': 'Booking successfully confirmed.'}, status=status.HTTP_200_OK)
 
-            elif user_tour.status == 'Confirmed':
+            elif user_tour.status == 'CONFIRMED':
                 return Response({'detail': 'This booking is already confirmed.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            elif user_tour.status == 'Cancelled':
+            elif user_tour.status == 'CANCELLED':
                 return Response({'detail': 'This booking has already been cancelled. Cannot confirm.'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -105,3 +106,16 @@ class ConfirmUserTourAPIView(APIView):
 
         except UserTour.DoesNotExist:
             return Response({'detail': 'Booking not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class HotToursAPIView(APIView):
+    def get(self, request):
+        hot_tours = TourDestination.objects.filter(is_featured=True).order_by('-created_at')
+        serializer = TourDestinationSerializer(hot_tours, many=True)
+        return Response(serializer.data)
+
+
+class RegionPriceAPIView(APIView):
+    def get(self, request):
+        data = TourDestination.objects.values('location').annotate(avg_price=Avg('price'))
+        return Response(data)
