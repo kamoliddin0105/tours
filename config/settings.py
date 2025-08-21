@@ -49,12 +49,8 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'tours.apps.ToursConfig',
-    'banners',
     'reviews',
-    'schedules',
-    'contact',
     'currency',
-    'cms'
 ]
 
 REST_FRAMEWORK = {

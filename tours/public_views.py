@@ -1,16 +1,78 @@
+import calendar
 from collections import defaultdict
 
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from schedules.models import TourSchedule
-from tours.filters import TourDestinationFilter
-from tours.models import TourDestination, UserTour
-from tours.serializers import TourDestinationSerializer, UserTourSerializer, TourMapSerializer
+from core.paginition import MonthlyCheapTourPagination
+from tours.filters import TourDestinationFilter, SimilarTourFilter
+from tours.models import TourDestination
+from tours.serializers import TourDestinationSerializer, TourSerializer
+from tours.swagger import hot_tours_schema, tour_calendar_schema, similar_tours_schema, grouped_tour_map_schema
+
+
+class HotToursAPIView(APIView):
+    @hot_tours_schema
+    def get(self, request):
+        hot_tours = TourDestination.objects.filter(is_featured=True).order_by('-created_at')
+        serializer = TourDestinationSerializer(hot_tours, many=True)
+        return Response(serializer.data)
+
+
+class TourCalendarAPIView(APIView):
+    @tour_calendar_schema
+    def get(self, request):
+        month_name = request.query_params.get('month')
+        if not month_name:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            month_number = list(calendar.month_name).index(month_name.capitalize())
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = TourDestination.objects.filter(start_date__month=month_number).order_by('name', 'price')
+
+        seen = set()
+        unique_cheapest = []
+        for tour in queryset:
+            if tour.name not in seen:
+                unique_cheapest.append(tour)
+                seen.add(tour.name)
+
+        paginator = MonthlyCheapTourPagination()
+        paginated = paginator.paginate_queryset(unique_cheapest, request)
+        serializer = TourSerializer(paginated, many=True)
+
+        return paginator.get_paginated_response(serializer.data)
+
+
+class TourListFilterAPIView(ListAPIView):
+    queryset = TourDestination.objects.all()
+    serializer_class = TourSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TourDestinationFilter
+
+
+class SimilarTourFilterAPIView(APIView):
+    serializer_class = TourSerializer
+    filter_backends = [DjangoFilterBackend]
+
+    @similar_tours_schema
+    def get_queryset(self):
+        tour_id = self.kwargs['tour_id']
+        tour_instance = get_object_or_404(TourDestination, id=tour_id)
+        queryset = TourDestination.objects.all()
+        return SimilarTourFilter(
+            data=self.request.GET,
+            queryset=queryset,
+            request=self.request,
+            tour_instance=tour_instance
+        ).qs
 
 
 class TourListAPIView(ListAPIView):
@@ -24,43 +86,8 @@ class TourDetailAPIView(RetrieveAPIView):
     lookup_field = 'pk'
 
 
-class MyToursAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user_tours = UserTour.objects.filter(user=request.user)
-        serializer = UserTourSerializer(user_tours, many=True)
-        return Response(serializer.data)
-
-
-class TourListFilterAPIView(ListAPIView):
-    queryset = TourDestination.objects.all()
-    serializer_class = TourDestinationSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TourDestinationFilter
-
-
-class TourCalendarAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    def get(self, request, tour_id):
-        schedules = TourSchedule.objects.filter(tour_id=tour_id).values('start_date', 'price')
-        data = [
-            {
-                "date": s["start_date"],
-                "price": s["price"],
-            } for s in schedules
-        ]
-        return Response(data, status=status.HTTP_200_OK)
-
-
-class TourMapAPIView(APIView):
-    def get(self, request):
-        tours = TourDestination.objects.filter(latitude__isnull=False, longitude__isnull=False)
-        serializer = TourMapSerializer(tours, many=True)
-        return Response(serializer.data)
-
-
 class GroupedTourMapAPIView(APIView):
+    @grouped_tour_map_schema
     def get(self, request):
         data = defaultdict(list)
         tours = TourDestination.objects.filter(latitude__isnull=False, longitude__isnull=False)

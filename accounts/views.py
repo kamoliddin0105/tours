@@ -1,11 +1,15 @@
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User
 from accounts.permisssions import IsAdminUserCustom, IsSuperUserUserCustom
-from accounts.serializers import RegisterSerializer, LoginSerializer
+from accounts.serializers import RegisterSerializer, LoginSerializer, UserIsTourManagerSerializer, \
+    TourAdminAddressSerializer
+from accounts.swagger import register_schema, login_schema, make_admin_schema, remove_admin_schema, make_manager_schema, \
+    remove_manager_schema, tour_manager_list_schema, tour_admin_address_schema
 
 
 def get_tokens_for_user(user):
@@ -17,6 +21,7 @@ def get_tokens_for_user(user):
 
 
 class RegisterAPIView(APIView):
+    @register_schema
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -29,6 +34,7 @@ class RegisterAPIView(APIView):
 
 
 class LoginAPIView(APIView):
+    @login_schema
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -56,6 +62,7 @@ class MakeAdminApiView(APIView):
 class RemoveAdminApiView(APIView):
     permission_classes = [IsSuperUserUserCustom, ]
 
+    @remove_admin_schema
     def post(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
@@ -73,6 +80,7 @@ class RemoveAdminApiView(APIView):
 class MakeTourManagerApiView(APIView):
     permission_classes = [IsAdminUserCustom, ]
 
+    @make_manager_schema
     def patch(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
@@ -86,6 +94,7 @@ class MakeTourManagerApiView(APIView):
 class RemoveTourManagerApiView(APIView):
     permission_classes = [IsAdminUserCustom, ]
 
+    @remove_manager_schema
     def post(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
@@ -99,3 +108,13 @@ class RemoveTourManagerApiView(APIView):
         user.save()
         return Response({"message": "Foydalanuvchidan tour managerlik olib tashlandi"},
                         status=status.HTTP_200_OK)
+
+
+class TourManagerListApiView(ListAPIView):
+    queryset = User.objects.filter(is_tour_manager=True)
+    serializer_class = UserIsTourManagerSerializer
+
+
+class AddressAPIView(APIView):
+    queryset = User.objects.filter(is_admin=True)
+    serializer_class = TourAdminAddressSerializer

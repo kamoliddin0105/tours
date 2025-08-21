@@ -53,3 +53,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'gmail', 'phone_number', 'username', 'is_active', 'is_admin']
+
+
+class UserIsTourManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'phone_number', 'first_name', 'last_name']
+
+
+class TourAdminAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['instagram_username', 'telegram_username', 'address', 'working_time']

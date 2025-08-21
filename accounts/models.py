@@ -29,6 +29,10 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     phone_number = models.CharField(max_length=15, unique=True)
     username = models.CharField(max_length=100, unique=True, null=True, blank=True)
     password = models.CharField(max_length=255)
+    instagram_username = models.CharField(max_length=100, null=True, blank=True)
+    telegram_username = models.CharField(max_length=100, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    working_time = models.CharField(max_length=255, null=True, blank=True)
 
     is_admin = models.BooleanField(default=False)
     is_tour_manager = models.BooleanField(default=False)

@@ -1,17 +1,15 @@
 from django.db.models import Avg
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
 from accounts.permisssions import IsAdminUserCustom
 from accounts.serializers import UserSerializer
-from core.views import send_sms
-from tours.models import TourDestination, UserTour, TourPriceWatch
-from tours.serializers import TourDestinationSerializer, UserTourSerializer, CreateUserTourSerializer, \
-    TourPriceWatchSerializer
+from tours.models import TourDestination
+from tours.serializers import TourDestinationSerializer
+from tours.swagger import block_user_schema, region_price_schema
 
 
 class TourListCreateAPIView(CreateAPIView):
@@ -35,6 +33,7 @@ class AllUsersAPIView(ListAPIView):
 class BlockUserAPIView(APIView):
     permission_classes = [IsAdminUserCustom]
 
+    @block_user_schema
     def post(self, request, user_id):
         try:
             user = User.objects.get(id=user_id)
@@ -45,94 +44,10 @@ class BlockUserAPIView(APIView):
             return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-class BookTourAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = CreateUserTourSerializer(data=request.data)
-        if serializer.is_valid():
-            tour = serializer.validated_data['tour']
-            if UserTour.objects.filter(user=request.user, tour=tour).exists():
-                return Response({"detail": "You already booked this tour."}, status=status.HTTP_400_BAD_REQUEST)
-
-            UserTour.objects.create(user=request.user, tour=tour)
-            return Response({"detail": "You booked this tour."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class MyBookingsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        bookings = UserTour.objects.filter(user=request.user)
-        serializer = UserTourSerializer(bookings, many=True)
-        return Response(serializer.data)
-
-
-class CancelBookingAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, pk):
-        try:
-            booking = UserTour.objects.get(id=pk, user=request.user)
-        except UserTour.DoesNotExist:
-            return Response({"detail": "Tour not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        if booking.status == 'CANCELLED':
-            return Response({"detail": "You already cancelled this tour."}, status=status.HTTP_400_BAD_REQUEST)
-        booking.status = 'CANCELLED'
-        booking.save()
-        return Response({"detail": "You cancelled this tour."}, status=status.HTTP_200_OK)
-
-
-class ConfirmUserTourAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserCustom]
-
-    def post(self, request, pk):
-        try:
-            user_tour = UserTour.objects.get(pk=pk)
-
-            if user_tour.status == 'PENDING':
-                user_tour.status = 'CONFIRMED'
-                user_tour.save()
-                return Response({'detail': 'Booking successfully confirmed.'}, status=status.HTTP_200_OK)
-
-            elif user_tour.status == 'CONFIRMED':
-                return Response({'detail': 'This booking is already confirmed.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            elif user_tour.status == 'CANCELLED':
-                return Response({'detail': 'This booking has already been cancelled. Cannot confirm.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            return Response({'detail': 'Invalid booking status.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        except UserTour.DoesNotExist:
-            return Response({'detail': 'Booking not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-
-class HotToursAPIView(APIView):
-    def get(self, request):
-        hot_tours = TourDestination.objects.filter(is_featured=True).order_by('-created_at')
-        serializer = TourDestinationSerializer(hot_tours, many=True)
-        return Response(serializer.data)
-
-
 class RegionPriceAPIView(APIView):
+    @region_price_schema
     def get(self, request):
         data = TourDestination.objects.values('location').annotate(avg_price=Avg('price'))
         return Response(data)
-
-
-class TourPriceWatchCreateAPIView(APIView):
-    # permission_classes = [IsAuthenticated]
-    queryset = TourPriceWatch.objects.all()
-    serializer_class = TourPriceWatchSerializer
-
-    def perform_create(self, serializer):
-        instance = serializer.save()
-        phone_number = instance.user.phone_number
-        message = f"Narx kuzatuvi yoqildi"
-
-        send_sms(phone_number, message)
 
 
