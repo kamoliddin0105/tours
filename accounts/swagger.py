@@ -8,7 +8,7 @@ from .serializers import (
     ForgotPasswordSerializer,
     ResetPasswordSerializer,
     UserIsTourManagerSerializer,
-    TourAdminAddressSerializer
+    TourAdminAddressSerializer, UserProfileSerializer
 )
 
 register_schema = swagger_auto_schema(
@@ -76,4 +76,49 @@ tour_manager_list_schema = swagger_auto_schema(
 
 tour_admin_address_schema = swagger_auto_schema(
     responses={status.HTTP_200_OK: TourAdminAddressSerializer(many=True)},
+)
+
+profile_response = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+        "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+        "gmail": openapi.Schema(type=openapi.TYPE_STRING),
+        "phone_number": openapi.Schema(type=openapi.TYPE_STRING),
+        "username": openapi.Schema(type=openapi.TYPE_STRING),
+    }
+)
+
+profile_update_request = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "first_name": openapi.Schema(type=openapi.TYPE_STRING),
+        "last_name": openapi.Schema(type=openapi.TYPE_STRING),
+        "gmail": openapi.Schema(type=openapi.TYPE_STRING),
+        "phone_number": openapi.Schema(type=openapi.TYPE_STRING),
+        "password": openapi.Schema(type=openapi.TYPE_STRING),
+    }
+)
+
+booking_create_request = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "tour_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Tour ID"),
+    }
+)
+
+booking_response = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER),
+        "tour": openapi.Schema(type=openapi.TYPE_STRING),
+        "status": openapi.Schema(type=openapi.TYPE_STRING, enum=["pending", "confirmed", "canceled"]),
+        "created_at": openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_DATETIME),
+    }
+)
+
+booking_list_response = openapi.Schema(
+    type=openapi.TYPE_ARRAY,
+    items=booking_response
 )

@@ -1,5 +1,6 @@
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -7,9 +8,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.models import User
 from accounts.permisssions import IsAdminUserCustom, IsSuperUserUserCustom
 from accounts.serializers import RegisterSerializer, LoginSerializer, UserIsTourManagerSerializer, \
-    TourAdminAddressSerializer
+    TourAdminAddressSerializer, UserProfileSerializer
 from accounts.swagger import register_schema, login_schema, make_admin_schema, remove_admin_schema, make_manager_schema, \
-    remove_manager_schema, tour_manager_list_schema, tour_admin_address_schema
+    remove_manager_schema, tour_manager_list_schema, tour_admin_address_schema, booking_create_request, booking_response
 
 
 def get_tokens_for_user(user):
@@ -49,6 +50,7 @@ class LoginAPIView(APIView):
 class MakeAdminApiView(APIView):
     permission_classes = [IsSuperUserUserCustom, ]
 
+    @make_admin_schema
     def patch(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
@@ -84,9 +86,9 @@ class MakeTourManagerApiView(APIView):
     def patch(self, request, user_id):
         try:
             user = User.objects.get(pk=user_id)
-            user.is_manager = True
+            user.is_tour_manager = True
             user.save()
-            return Response({"msg": f"{user.phone_number} tour manage qilindi."}, status=status.HTTP_200_OK)
+            return Response({"msg": f"{user.phone_number} tour manager qilindi."}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"error": "Foydalanuvchi topilmadi."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -100,7 +102,7 @@ class RemoveTourManagerApiView(APIView):
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return Response({"error": "Foydalanuvchi topilmadi"}, status=status.HTTP_404_NOT_FOUND)
-        if not user.is_manager:
+        if not user.is_tour_manager:
             return Response({"message": "Bu foydalanuvchi allaqachon tour manager emas"},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -113,8 +115,28 @@ class RemoveTourManagerApiView(APIView):
 class TourManagerListApiView(ListAPIView):
     queryset = User.objects.filter(is_tour_manager=True)
     serializer_class = UserIsTourManagerSerializer
+    permission_classes = [IsAdminUserCustom, IsSuperUserUserCustom, ]
 
 
 class AddressAPIView(APIView):
     queryset = User.objects.filter(is_admin=True)
     serializer_class = TourAdminAddressSerializer
+
+
+class UserProfileAPIView(RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserProfileUpdateAPIView(UpdateAPIView):
+    serializer_class = UserProfileSerializer
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

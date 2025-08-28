@@ -65,3 +65,11 @@ class TourAdminAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['instagram_username', 'telegram_username', 'address', 'working_time']
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'gmail', 'phone_number', 'username', 'is_active', 'is_admin',
+                  'created_at', 'updated_at']
+        read_only_fields = ["id", "is_admin", "is_active", 'created_at', 'updated_at']

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import django_filters
+from django_filters.rest_framework import FilterSet, MultipleChoiceFilter, ChoiceFilter
 
 from tours.models import TourDestination
 
@@ -64,3 +65,40 @@ class SimilarTourFilter(django_filters.FilterSet):
             qs = qs.filter(hotel_star=tour.hotel_star)
 
         return qs
+
+class TourDestinationAllFilter(FilterSet):
+    # Checkbox orqali bir nechta qiymat yuborish mumkin
+    hotel_rating = MultipleChoiceFilter(
+        field_name="hotel_rating",
+        choices=[(i, str(i)) for i in range(1, 11)],  # Masalan 1 dan 10 gacha
+    )
+    hotel_star = MultipleChoiceFilter(
+        field_name="hotel_star",
+        choices=[(i, f"{i} stars") for i in range(1, 6)],
+    )
+    beach_type = MultipleChoiceFilter(
+        field_name="beach_type",
+        choices=[("sand", "Qum"), ("pebble", "Tosh"), ("private", "Xususiy")],
+    )
+    meal_type = MultipleChoiceFilter(
+        field_name="meal_type",
+        choices=[
+            ("BB", "Bed & Breakfast"),
+            ("HB", "Half Board"),
+            ("FB", "Full Board"),
+            ("AI", "All Inclusive"),
+        ],
+    )
+    is_hot = ChoiceFilter(field_name="is_hot")
+    is_featured = ChoiceFilter(field_name="is_featured")
+
+    class Meta:
+        model = TourDestination
+        fields = [
+            "hotel_rating",
+            "hotel_star",
+            "beach_type",
+            "meal_type",
+            "is_hot",
+            "is_featured",
+        ]

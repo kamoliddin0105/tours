@@ -21,6 +21,11 @@ class UserManager(BaseUserManager):
 
         return self.create_user(phone_number, password, **extra_fields)
 
+class Role(BaseModel):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
 
 class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     first_name = models.CharField(max_length=100)
@@ -33,6 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
     telegram_username = models.CharField(max_length=100, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     working_time = models.CharField(max_length=255, null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, related_name="users")
 
     is_admin = models.BooleanField(default=False)
     is_tour_manager = models.BooleanField(default=False)
@@ -46,3 +52,4 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
 
     def __str__(self):
         return self.phone_number
+

@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import (RegisterAPIView, LoginAPIView, MakeAdminApiView, RemoveAdminApiView, MakeTourManagerApiView,
-                    RemoveTourManagerApiView, TourManagerListApiView, AddressAPIView,
+                    RemoveTourManagerApiView, TourManagerListApiView, AddressAPIView, UserProfileAPIView,
+                    UserProfileUpdateAPIView,
     # ForgotPasswordAPIView,
     # ResetPasswordAPIView
                     )
@@ -19,4 +20,8 @@ urlpatterns = [
 
     path('make/tour_manager/<int:user_id>/', MakeTourManagerApiView.as_view(), name='make_tour_manager'),
     path('remove/tour_manager/<int:user_id>/', RemoveTourManagerApiView.as_view(), name='remove_tour_manager'),
+
+    # profile
+    path("profile/", UserProfileAPIView.as_view(), name="user-profile"),
+    path("profile/update/", UserProfileUpdateAPIView.as_view(), name="user-profile-update"),
 ]

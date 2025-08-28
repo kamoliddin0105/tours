@@ -4,12 +4,14 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, C
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts import models
 from accounts.models import User
 from accounts.permisssions import IsAdminUserCustom
 from accounts.serializers import UserSerializer
 from tours.models import TourDestination
 from tours.serializers import TourDestinationSerializer
 from tours.swagger import block_user_schema, region_price_schema
+
 
 
 class TourListCreateAPIView(CreateAPIView):
@@ -47,7 +49,10 @@ class BlockUserAPIView(APIView):
 class RegionPriceAPIView(APIView):
     @region_price_schema
     def get(self, request):
-        data = TourDestination.objects.values('location').annotate(avg_price=Avg('price'))
+        data = (
+            TourDestination.objects
+            .values(region=models.F("destination_country__region"))
+            .annotate(avg_price=Avg("price_adult"))
+        )
         return Response(data)
-
 

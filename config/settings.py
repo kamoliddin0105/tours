@@ -44,13 +44,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'django_filters',
-    'modeltranslation',
     # in app
     'accounts',
     'core',
-    'tours.apps.ToursConfig',
     'reviews',
     'currency',
+    'tours',
 ]
 
 REST_FRAMEWORK = {
@@ -108,6 +107,16 @@ DATABASES = {
         'PORT': getenv('DB_PORT'),
     }
 }
+# Swagger
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -136,7 +145,6 @@ LANGUAGES = (
     ('en', 'English'),
 )
 
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'uz'
 
 TIME_ZONE = 'UTC'
 

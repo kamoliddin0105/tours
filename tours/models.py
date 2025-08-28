@@ -1,50 +1,48 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from accounts.models import User
-from core.models import BaseModel
+from core.models import BaseModel, Infrastructure, ChildFacility
 from currency.models import Currency
 
 
-class Country(BaseModel):
-    REGION_CHOICES = [
-        ('EUROPE', 'Europe'),
-        ('ASIA', 'Asia'),
-        ('NORTH_AMERICA', 'North America'),
-        ('SOUTH_AMERICA', 'South America'),
-        ('AFRICA', 'Africa'),
-    ]
-
+class Region(BaseModel):
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10)  # Optional: ISO code like "TR", "EG"
-    currency = models.ForeignKey(Currency, max_length=10, related_name='countries', on_delete=models.CASCADE)
-    region = models.CharField(max_length=20, choices=REGION_CHOICES)
+
+    class Meta:
+        db_table = 'regions'
 
     def __str__(self):
         return self.name
+
+
+class Country(BaseModel):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=10)
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, related_name="countries")
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, related_name="countries")
 
     class Meta:
         db_table = 'countries'
 
-
-class TourOperator(BaseModel):
-    name = models.CharField(max_length=255)
-    website = models.URLField(blank=True, null=True)
-    contact_info = models.TextField(blank=True, null=True)
-    rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
-
     def __str__(self):
         return self.name
 
-    class Meta:
-        db_table = 'tour_operator'
+
+class TourOperator(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="operator")
+    company_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    telegram_username = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.company_name
 
 
 class TourDestination(BaseModel):
     name = models.CharField(max_length=255)
     description = models.TextField(max_length=1000, blank=True, null=True)
-    departure_city = models.CharField(max_length=255, default='Tashkent')
-    destination_country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='tours')
+    departure_city = models.CharField(max_length=255, default="Tashkent")
+    destination_country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="tours")
     operator = models.ForeignKey(TourOperator, on_delete=models.SET_NULL, null=True, blank=True)
 
     start_date = models.DateField()
@@ -55,11 +53,31 @@ class TourDestination(BaseModel):
     price_child = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    hotel_star = models.PositiveSmallIntegerField(choices=[(i, f'{i} stars') for i in range(1, 6)])
-    includes = ArrayField(models.CharField(max_length=255), blank=True, default=list)
+    hotel_star = models.PositiveSmallIntegerField(choices=[(i, f"{i} stars") for i in range(1, 6)])
+    hotel_rating = models.FloatField(null=True, blank=True)
 
-    images = ArrayField(models.URLField(), blank=True, default=list)
-    available_seats = models.PositiveIntegerField(default=0)
+    meal_type = models.CharField(
+        max_length=10,
+        choices=[
+            ("BB", "Bed & Breakfast"),
+            ("HB", "Half Board"),
+            ("FB", "Full Board"),
+            ("AI", "All Inclusive"),
+        ],
+        null=True,
+        blank=True,
+    )
+
+    distance_to_sea = models.PositiveIntegerField(null=True, blank=True, help_text="meters")
+    beach_type = models.CharField(
+        max_length=20,
+        choices=[("sand", "Qum"), ("pebble", "Tosh"), ("private", "Xususiy")],
+        null=True,
+        blank=True,
+    )
+
+    infrastructures = models.ManyToManyField(Infrastructure, blank=True)
+    child_facilities = models.ManyToManyField(ChildFacility, blank=True)
 
     is_featured = models.BooleanField(default=False)
     is_hot = models.BooleanField(default=False)
@@ -76,7 +94,29 @@ class TourDestination(BaseModel):
         super().save(*args, **kwargs)
 
     class Meta:
-        db_table = 'tour_destination'
+        db_table = "tour_destination"
+
+class UserTour(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bookings")
+    tour = models.ForeignKey(TourDestination, on_delete=models.CASCADE, related_name="bookings")
+    has_attended = models.BooleanField(default=False)
+    status = models.CharField(max_length=10,
+                              choices=[
+                                  ("pending", "Pending"),
+                                  ("confirmed", "Confirmed"),
+                                  ("canceled", "Canceled")])
+
+    def __str__(self):
+        return f"{self.user} → {self.tour}"
+
+class TourImage(models.Model):
+    tour = models.ForeignKey(TourDestination, on_delete=models.CASCADE, related_name="images")
+    url = models.URLField()
+
+
+class TourInclude(models.Model):
+    tour = models.ForeignKey(TourDestination, on_delete=models.CASCADE, related_name="includes")
+    name = models.CharField(max_length=255)
 
 
 class PriceCalendar(models.Model):

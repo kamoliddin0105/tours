@@ -4,8 +4,8 @@ from django.db import models
 class Currency(models.Model):
     CURRENCY_CHOICES = [
         ('EUR', 'Euro'),
-        ('USD', 'US Dollar'),
-        ('UZS', 'uzb uzs'),
+        ('USD', 'USD'),
+        ('UZS', 'UZS'),
     ]
     code = models.CharField(max_length=3, choices=CURRENCY_CHOICES, unique=True)
     is_active = models.BooleanField(default=True)
